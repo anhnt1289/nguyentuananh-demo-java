@@ -1,0 +1,35 @@
+version: "3.6"
+services:
+  apibase-service:
+    image: openjdk:8-jre-slim
+    container_name: apibase-service
+    volumes:
+      - ./apibase/target:/var/local/share/application
+      - logs_vol:/var/log
+    environment:
+      - MARIADB_URI=${MARIADB_URI:-jdbc:mariadb://mariadb0:3306/base_db}
+      - MARIADB_USER=${MARIADB_USER:-base_dev}
+      - MARIADB_PASSWORD=${MARIADB_PASSWORD:-123456789aA@}
+      - REDIS_HOST=${REDIS_HOST:-redis-service}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-admindev}
+      - LOCALHOST_8080=${LOCALHOST_8080:-http://localhost:8080}
+      - TOKEN_SECRET=${TOKEN_SECRET:-04ca023b39512e46d0c2cf4b48d5aac61d34302994c87ed4eff225dcf3b0a218739f3897051a057f9b846a69ea2927a587044164b7bae5e1306219d50b588cb1}
+      - TOKEN_EXPIRATION_MSEC=${TOKEN_EXPIRATION_MSEC:-31536000}
+    ports:
+      - 8080:8080
+      - 9080:9080
+    networks:
+      - app-net
+    working_dir: /var/local/share/application
+    restart: on-failure
+    entrypoint:
+      - java
+      - -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9080
+      - -jar
+      - api-0.0.1-SNAPSHOT.jar
+networks:
+  app-net:
+    name: base-local
+
+volumes:
+  logs_vol:
